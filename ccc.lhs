@@ -188,7 +188,7 @@ instance Category StackFun where
 %format AssociativePCat = AssociativeCat
 %format BraidedPCat = BraidedCat
 
-\framet{Easy interfaces}{
+\framet{Easy operations}{
 \begin{code}
 class AssociativePCat k where
   rassocP :: ((a :* b) :* c) `k` (a :* (b :* c))
@@ -207,6 +207,25 @@ instance AssociativePCat StackFun where
 
 instance BraidedPCat StackFun where
   swapP = stackFun swapP
+\end{code}
+}
+
+%format MonoidalPCat = MonoidalP
+%format MonoidalPCat = Monoidal "\!_" :*
+%format ProductCat = Cartesian
+\framet{Easy operations}{
+\begin{code}
+class MonoidalPCat k => ProductCat k where
+  exl  :: (a :* b) `k` a
+  exr  :: (a :* b) `k` b
+  dup  :: a `k` (a :* a)
+\end{code} 
+Homomorphisms are again in solved form.
+\begin{code}
+instance ProductCat StackFun where
+  exl  = stackFun exl
+  exr  = stackFun exr
+  dup  = stackFun dup
 \end{code}
 }
 
@@ -289,15 +308,17 @@ For left-to-right, |f *** g = second g . first f|.
 \framet{Parallel composition}{
 \begin{code}
     stackFun f *** stackFun g
-==  {- |(***)| for |StackFun| -}
-    first (stackFun f) . second (stackFun g)
-==  {- definition of |stackFun| -}
-    SF (first f) *** SF (first g)
-==  {- ... -}
+==  {- definitions above -}
     SF (  lassocP . first f . rassocP . first swap .
           lassocP . first g . rassocP . first swap)
+==  {- below -}
+    stackFun (f *** g)
 \end{code}
-Step-by-step:
+%% ==  {- |(***)| for |StackFun| -}
+%%     first (stackFun f) . second (stackFun g)
+%% ==  {- definition of |stackFun| -}
+%%     SF (first f) *** SF (first g)
+Step-by-step (right-to-left):
 %format --> = "\ \longmapsto\ "
 %format -*> = "\ \longmapsto\!\!\!^\ast\ "
 \begin{code}
@@ -309,20 +330,31 @@ lassocP     -->  ((g b,a)        ,z)
 first swap  -->  ((a, g b)       ,z)
 rassocP     -->  (a              ,(g b,z))
 first f     -*>  (f a            ,(g b,z))  -- steps for |f|
-lassocP     -->  ((f a, g b)     ,z)
+lassocP     -->  ((f a, g b)     ,z)        -- |== first (f *** g) ((a,b),z)|
+\end{code}
+}
+
+\framet{Parallel composition}{
+\begin{code}
+    stackFun f *** stackFun g
+==  SF (  lassocP . first f . rassocP . first swap .
+          lassocP . first g . rassocP . first swap)
 \end{code}
 
-\out{
-Operationally, |first g| and |first f| stand for stack-transformation sub-sequences.
-Note that this final stack state is equal to |first (f *** g) ((a,b),z)| as needed.
-We have, however, flattened (under the |SF| constructor) into \emph{purely sequential} compositions of functions of three forms:
-\begin{itemize}\itemsep0ex
-\item |first p| for simple functions |p|, 
-\item |rassocP|, and
-\item |lassocP|.
+We've recursively flattened to \emph{purely sequential} compositions of:
+\begin{itemize}\itemsep2ex
+\item |first p| for a few primitive functions |p|, 
+\item |rassocP| and |lassocP| in balanced pairs.
 \end{itemize}
-Moreover, the latter two always come in balanced pairs.
 }
+
+\framet{Next}{
+
+\begin{itemize}
+\item Mention conditional composition (coproducts) and closure.
+\item From stack functions to stack programs.
+\end{itemize}
+
 
 }
 
