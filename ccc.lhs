@@ -169,7 +169,7 @@ SF (first g) . SF (first f) == SF (first g . first f)
 
 Strengthen by generalizing from |first g| and |first f|:
 \begin{code}
-SF g . SF f == SF (g . f)  -- now in solved form!
+SF g . SF f == SF (g . f)  -- Now in solved form.
 \end{code}
 
 \vspace{4ex}
@@ -208,8 +208,6 @@ instance AssociativePCat StackFun where
 instance BraidedPCat StackFun where
   swapP = stackFun swapP
 \end{code}
-
-\mynote{Omit this slide?}
 }
 
 \framet{Parallel composition}{
@@ -227,7 +225,7 @@ second :: MonoidalPCat k => (b `k` d) -> ((a :* b) `k` (a :* d))
 second g = id *** g
 \end{code}
 
-Focus on |first|, sincea
+Focus on |first|, since
 \begin{code}
 f *** g  = first f . second g
 
@@ -240,6 +238,91 @@ second g = swap . first g . swap
 %% f *** g  = first f . second g
 %%          = first f . swap . first g . swap
 
+
+}
+
+\framet{Homomorphism property for |first|}{
+\begin{code}
+first (stackFun f) == stackFun (first f)
+\end{code}
+Simplifying,
+\begin{code}
+first (SF (first f)) == SF (first (first f))
+\end{code}
+Types:
+\begin{code}
+                f   :: a -> c
+         first  f   :: a :* b -> c :* b
+first (  first  f)  :: forall z. (a :* b) :* z -> (c :* b) :* z
+\end{code}
+For stack computation, temporarily move |b| aside:
+\begin{code}
+   first (first f)
+=  {- definition of |first| on |(->)| -}
+   \ ((a,b),z) -> ((f a,b),z)
+=  {- definition of |lassocP|, |rassocP|, and |first| on |(->)| -}
+   lassocP . first f . rassocP
+\end{code}
+}
+
+\framet{Homomorphism property for |first|}{
+Homomorphism equation now:
+\begin{code}
+first (SF (first f)) == SF (lassocP . first f . rassoc)
+\end{code}
+Strengthen/generalize:
+\begin{code}
+first (SF f) == SF (lassocP . f . rassoc)  -- Now in solved form.
+\end{code}
+
+Sufficient definition:
+\begin{code}
+instance MonoidalPCat StackFun where
+  first (SF f) = SF (lassocP . f . rassocP)
+  second g = swap . first g . swap
+  f *** g = first f . second g
+\end{code}
+Note right-to-left argument evaluation.
+For left-to-right, |f *** g = second g . first f|.
+}
+
+\framet{Parallel composition}{
+\begin{code}
+    stackFun f *** stackFun g
+==  {- |(***)| for |StackFun| -}
+    first (stackFun f) . second (stackFun g)
+==  {- definition of |stackFun| -}
+    SF (first f) *** SF (first g)
+==  {- ... -}
+    SF (  lassocP . first f . rassocP . first swap .
+          lassocP . first g . rassocP . first swap)
+\end{code}
+Step-by-step:
+%format --> = "\ \longmapsto\ "
+%format -*> = "\ \longmapsto\!\!\!^\ast\ "
+\begin{code}
+                 ((a,b)          ,z)
+first swap  -->  ((b,a)          ,z)
+rassocP     -->  (b              ,(a,z))
+first g     -*>  (g b            ,(a,z))    -- steps for |g|
+lassocP     -->  ((g b,a)        ,z)
+first swap  -->  ((a, g b)       ,z)
+rassocP     -->  (a              ,(g b,z))
+first f     -*>  (f a            ,(g b,z))  -- steps for |f|
+lassocP     -->  ((f a, g b)     ,z)
+\end{code}
+
+\out{
+Operationally, |first g| and |first f| stand for stack-transformation sub-sequences.
+Note that this final stack state is equal to |first (f *** g) ((a,b),z)| as needed.
+We have, however, flattened (under the |SF| constructor) into \emph{purely sequential} compositions of functions of three forms:
+\begin{itemize}\itemsep0ex
+\item |first p| for simple functions |p|, 
+\item |rassocP|, and
+\item |lassocP|.
+\end{itemize}
+Moreover, the latter two always come in balanced pairs.
+}
 
 }
 
