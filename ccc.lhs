@@ -21,7 +21,7 @@
 % \institute[]{Target}
 
 \setlength{\itemsep}{2ex}
-\setlength{\parskip}{1ex}
+\setlength{\parskip}{3ex}
 \setlength{\blanklineskip}{1.5ex}
 \setlength\mathindent{4ex}
 
@@ -34,7 +34,7 @@
 \frame{\titlepage}
 
 \framet{Goals}{
-\begin{itemize}\itemsep2ex \parskip2ex
+\begin{itemize}\itemsep6ex
 \item
   Compiler from functional language to stack machine
 \item
@@ -54,8 +54,10 @@
 }
 
 \framet{The essence of stack computation}{
+\parskip4ex
 For a function |f :: a -> b|,
 \begin{itemize}
+\itemsep4ex
 \item
   Start with a stack containing |a| on top.
 \item
@@ -71,7 +73,7 @@ first f (a,z) = (f a, z)
 }
 
 \framet{Strategy}{
-\begin{enumerate}\itemsep2ex \parskip2ex
+\begin{enumerate}\itemsep8ex
 \item Specify by precise analogy.
 \item Solve for correct implementation.
 \item Profit!
@@ -89,20 +91,22 @@ stackFun f = SF (first f)
 \end{code}
 }
 
-\framet{Analogy (homomorphism)}{\parskip2ex
-Specification: |stackFun| defines a \emph{precise analogy}.
+\framet{Analogy (homomorphism)}{
+\parskip5ex
 
-\begin{itemize}\itemsep3ex
-\item Identify a standard vocabulary (algebraic abstraction).
-\item \emph{Analogous} meaning, related by |stackFun|.
-\item Formalize algebraically: homomorphism.
+Specification: |stackFun| defines a \emph{precise analogy}
+
+%format L = "\mathop{\mathbb{L}}"
+\begin{itemize}\itemsep5ex
+\item for a useful algebraic abstraction/vocabulary |L|, i.e.,
+\item |stackFun| is an |L|-homomorphism/analogy.
 %% \item Solutions are correct compilers.
 \end{itemize}
 }
 
 %% Domain-independent translation to \& from standard vocabulary.
 
-\framet{Identify a standard vocabulary}{
+\framet{Identify a useful vocabulary}{
 For functions and other function-like things:
 \begin{code}
 class Category k where
@@ -136,10 +140,12 @@ Trivial (already solved), but we can simplify/optimize:
 
 
 \framet{Sequential composition}{
+\vspace{4ex}
 \begin{code}
 stackFun g . stackFun f = stackFun (g . f)
 \end{code}
 
+\vspace{-2ex}
 Simplify LHS:
 \begin{code}
    stackFun g . stackFun f
@@ -161,13 +167,14 @@ SF (first g) . SF (first f) == SF (first g . first f)
 }
 
 \framet{Sequential composition}{
+\vspace{2ex}
 \begin{code}
 SF (first g) . SF (first f) == SF (first g . first f)
 \end{code}
 
 \vspace{1ex}
 
-Strengthen by generalizing from |first g| and |first f|:
+Generalize/strengthen:
 \begin{code}
 SF g . SF f == SF (g . f)  -- Now in solved form.
 \end{code}
@@ -230,10 +237,12 @@ instance ProductCat StackFun where
 }
 
 \framet{Parallel composition}{
+\vspace{6ex}
 \begin{code}
 class MonoidalPCat k where
   (***) :: (a `k` c) -> (b `k` d) -> ((a :* b) `k` (c :* d))
 \end{code}
+\vspace{-3ex}
 
 Convenient specializations:
 \begin{code}
@@ -243,7 +252,6 @@ first f = f *** id
 second :: MonoidalPCat k => (b `k` d) -> ((a :* b) `k` (a :* d))
 second g = id *** g
 \end{code}
-
 Focus on |first|, since
 \begin{code}
 f *** g  = first f . second g
@@ -261,19 +269,28 @@ second g = swap . first g . swap
 }
 
 \framet{Homomorphism property for |first|}{
+\vspace{3ex}
 \begin{code}
 first (stackFun f) == stackFun (first f)
 \end{code}
+\vspace{-4.5ex}
+
 Simplifying,
 \begin{code}
 first (SF (first f)) == SF (first (first f))
 \end{code}
+\vspace{-5ex}
+
 Types:
+
+\vspace{-2ex}
 \begin{code}
                 f   :: a -> c
          first  f   :: a :* b -> c :* b
 first (  first  f)  :: forall z. (a :* b) :* z -> (c :* b) :* z
 \end{code}
+\vspace{-5ex}
+
 For stack computation, temporarily move |b| aside:
 \begin{code}
    first (first f)
@@ -285,7 +302,7 @@ For stack computation, temporarily move |b| aside:
 }
 
 \framet{Homomorphism property for |first|}{
-Homomorphism equation now:
+Now
 \begin{code}
 first (SF (first f)) == SF (lassocP . first f . rassoc)
 \end{code}
@@ -348,14 +365,37 @@ We've recursively flattened to \emph{purely sequential} compositions of:
 \end{itemize}
 }
 
-\framet{Next}{
+%format MonoidalSCat = MonoidalS
+%format CoproductCat = Cocartesian
 
-\begin{itemize}
-\item Mention conditional composition (coproducts) and closure.
-\item From stack functions to stack programs.
-\end{itemize}
+\framet{Conditional composition (coproducts)}{
 
+\begin{code}
+class MonoidalSCat k where
+  (+++) :: (a `k` c) -> (b `k` d) -> ((a :+ b) `k` (c :+ d))
+
+left :: MonoidalSCat k => (a `k` c) -> ((a :+ b) `k` (c :+ b))
+left f = f +++ id
+
+right :: MonoidalSCat k => (b `k` d) -> ((a :+ b) `k` (a :+ d))
+right g = id +++ g
+
+class CoproductCat k where
+  inl  :: a `k` (a :+ b)
+  inr  :: b `k` (a :+ b)
+  jam  :: (a :+ a) `k` a
+\end{code}
+
+Works out as well.
 
 }
+
+\framet{Next}{
+\begin{itemize}\itemsep2ex \parskip2ex
+\item Closure
+\item From stack functions to stack programs
+\end{itemize}
+}
+
 
 \end{document}
