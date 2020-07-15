@@ -254,7 +254,7 @@ second g = id *** g
 \end{code}
 Focus on |first|, since
 \begin{code}
-f *** g  = first f . second g
+f *** g = first f . second g = second g . first f
 
 second g = swap . first g . swap
 \end{code}
@@ -323,6 +323,7 @@ For left-to-right, |f *** g = second g . first f|.
 }
 
 \framet{Parallel composition}{
+\vspace{2ex}
 \begin{code}
     stackFun f *** stackFun g
 ==  {- definitions above -}
@@ -335,9 +336,13 @@ For left-to-right, |f *** g = second g . first f|.
 %%     first (stackFun f) . second (stackFun g)
 %% ==  {- definition of |stackFun| -}
 %%     SF (first f) *** SF (first g)
-Step-by-step (right-to-left):
+
+\vspace{-2ex}
+Step by step\out{ (right-to-left)}:
 %format --> = "\ \longmapsto\ "
 %format -*> = "\ \longmapsto\!\!\!^\ast\ "
+
+\vspace{-2ex}
 \begin{code}
                  ((a,b)          ,z)
 first swap  -->  ((b,a)          ,z)
