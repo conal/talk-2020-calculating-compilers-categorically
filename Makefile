@@ -1,4 +1,4 @@
-TARG = ccc
+TARG = cc
 
 .PRECIOUS: %.tex %.pdf %.web
 
