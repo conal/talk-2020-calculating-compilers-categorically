@@ -75,11 +75,12 @@ first f (a,z) = (f a, z)
 }
 
 \framet{Strategy}{
-\begin{enumerate}\itemsep8ex
+\begin{itemize}\itemsep8ex
 \item Specify by precise analogy.
 \item Solve for correct implementation.
-\item Profit!
-\end{enumerate}
+% \item Profit!
+\item Apply to more interesting machines.
+\end{itemize}
 }
 
 \framet{Package as new type}{
@@ -394,15 +395,122 @@ class CoproductCat k where
 \end{code}
 
 Works out as well.
-
 }
 
-\framet{Next}{
-\begin{itemize}\itemsep2ex \parskip2ex
-\item Closure
-\item From stack functions to stack programs
+\framet{From stack functions to stack programs}{
+\begin{itemize}\itemsep6ex
+\item Code generation and optimization need inspection.
+\item Introduce \emph{data} representation denoting stack functions.
+\item Specify by homomorphism, and calculate implementation.
 \end{itemize}
 }
 
+\framet{Primitive operations}{
+\vspace{2ex}
+\begin{code}
+data Prim :: * -> * -> * NOP where  -- Notation
+  Exl  :: Prim (a :* b) a
+  Exr  :: Prim (a :* b) b
+  Dup  :: Prim a (a :* a)
+  ...
+  Negate :: Num a => Prim a a
+  Add, Sub, Mul :: Num a => Prim (a :* a) a
+  ...
+
+evalPrim :: Prim a b -> (a -> b)    -- Denotation
+evalPrim Exl     = exl
+evalPrim Exr     = exr
+evalPrim Dup     = dup
+                 ...
+evalPrim Negate  = negateC
+evalPrim Add     = addC
+                 ...
+\end{code}
+}
+
+%format Pure = Prim
+\framet{Stack operations}{
+\begin{code}
+data StackOp :: * -> * -> * NOP where
+  Pure  :: Prim a b -> StackOp (a :* z) (b :* z)
+  Push  :: StackOp ((a :* b) :* z) (a :* (b :* z))
+  Pop   :: StackOp (a :* (b :* z)) ((a :* b) :* z)
+
+NOP
+
+evalStackOp :: StackOp u v -> (u -> v)
+evalStackOp (Pure f)  = first (evalPrim f)
+evalStackOp Push      = rassocP
+evalStackOp Pop       = lassocP
+\end{code}
+}
+
+\framet{Stack programs}{
+%format ++* = ++
+%format :< = "\triangleleft"
+%% %format :< = ::
+%% Linear chains of stack operations:
+\begin{code}
+infixr 5 :<
+data StackOps :: * -> * -> * NOP where
+  Nil   :: StackOps a a
+  (:<)  :: StackOp a b -> StackOps b c -> StackOps a c
+NOP
+evalStackOps :: StackOps u v -> (u -> v)
+evalStackOps Nil          = id
+evalStackOps (op :< ops)  = evalStackOps ops . evalStackOp op
+
+NOP
+data StackProg a b = SP { unSP :: forall z. StackOps (a :* z) (b :* z) }
+NOP
+progFun :: StackProg a b -> StackFun a b
+progFun (SP ops) = SF (evalStackOps ops)
+\end{code}
+Compiler specification: |progFun| is homomorphic.
+}
+
+\framet{Compiler solution}{
+\vspace{3ex}
+\begin{code}
+instance Category StackProg where
+  id = SP Nil
+  SP g . SP f = SP (f ++* g)
+
+instance MonoidalPCat StackFun where
+  first (SP ops) = SP (Push :< ops ++* Pop :< Nil)
+  second g = swap . first g . swap
+  f *** g = first f . second g
+
+primProg :: Prim a b -> StackProg a b
+primProg p = SP (Pure p :< Nil)
+
+instance ProductCat StackProg where
+  exl  = primProg Exl
+  exr  = primProg Exr
+  dup  = primProg Dup
+
+...
+\end{code}
+}
+
+\framet{Next}{
+\begin{itemize}\itemsep2ex
+\item Closure
+\item Examples
+\item Optimization
+\item More with |CoproductCat|, including multi-constructor |case| expressions.
+      Maybe start with conditionals.
+      Hm!
+      I don't think I can define |(+++)| on |StackProg|, because the representation is a linear sequence of stack operations.
+\end{itemize}
+}
+
+\framet{Future work}{
+\begin{itemize}\itemsep6ex
+\item Generalize |StackFun| to category transformer.
+\item ...
+\end{itemize}
+
+}
 
 \end{document}
