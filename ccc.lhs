@@ -41,6 +41,8 @@
   Specification: simple essence of stack computation
 \item
   Correct implementation as solution to standard algebra problems
+%% \item Statically, polymorphically typed
+%% \item  Total
 \end{itemize}
 }
 
