@@ -14,8 +14,11 @@
 %include greek.fmt
 %include formatting.fmt
 
-% \title{Calculating compilers categorically}
-\title[]{Cheap \& cheerful compiler calculation}
+% \nc\tit{Calculating compilers categorically}
+\nc\tit{Cheap \& cheerful compiler calculation}
+
+% \title[]\tit
+\title[]\tit
 \date[]{Haskell Love 2020}
 % \date{\today{} (draft)}
 % \institute[]{Target}
@@ -34,7 +37,7 @@
 \frame{\titlepage}
 
 \title{Compiler calculation}
-\title{Cheap \& cheerful compiler calculation}
+\title\tit
 \date{Haskell Love 2020}
 
 \framet{Goals}{
@@ -50,13 +53,40 @@
 \end{itemize}
 }
 
-\out{
 \framet{Example}{
+Source:
 \begin{code}
 \ (x,y) -> 2 * x + 3 * y
 \end{code}
+%if False
+Standard algebraic translation (\href{http://conal.net/papers/compiling-to-categories}{\emph{Compiling
+to categories}}):
+\begin{code}
+   addC
+.  (mulC . (const 2 *** exl) . dup *** mulC . (const 3 *** exr) . dup)
+.  dup
+\end{code}
+%else
+\vspace{2ex}
+
+%endif
+Stack program:
+\begin{code}
+[  Dup,Push,Dup,Push,Const 2,Pop,Swap,Push,Exl,Pop
+,  Swap,Mul,Pop,Swap,Push,Dup,Push,Const 3,Pop,Swap
+,  Push,Exr,Pop,Swap,Mul,Pop,Swap,Add ]
+\end{code}
+%% To do: better optimization
 }
-\note{Give translation.}
+
+\framet{Recipe}{
+\begin{itemize}\itemsep8ex
+\item Identify essence of stack computation.
+\item Specify by precise analogy.
+\item Solve for correct implementation.
+% \item Profit!
+% \item Apply to more interesting machines.
+\end{itemize}
 }
 
 \framet{The essence of stack computation}{
@@ -74,17 +104,9 @@ For a function |f :: a -> b|,
 Formally,
 \begin{code}
 first :: (a -> b) -> forall z. (a :* z -> b :* z)
+
 first f (a,z) = (f a, z)
 \end{code}
-}
-
-\framet{Strategy}{
-\begin{itemize}\itemsep8ex
-\item Specify by precise analogy.
-\item Solve for correct implementation.
-% \item Profit!
-\item Apply to more interesting machines.
-\end{itemize}
 }
 
 \framet{Package as new type}{
@@ -168,7 +190,7 @@ Then RHS:
 =  {- property of |first| and |(.)| -}
    SF (first g . first f)
 \end{code}
-The simplified specification:
+Simplified specification:
 \begin{code}
 SF (first g) . SF (first f) == SF (first g . first f)
 \end{code}
@@ -350,7 +372,7 @@ For left-to-right, define |f *** g = second g . first f|.
 %%     SF (first f) *** SF (first g)
 
 \vspace{-2ex}
-Step by step\out{ (right-to-left)}:
+Stack evolution\out{ (right-to-left)}:
 %format --> = "\ \longmapsto\ "
 %format -*> = "\ \longmapsto\!\!\!^\ast\ "
 
@@ -410,11 +432,12 @@ Works out as well.
 
 %endif
 
-\framet{From stack functions to stack programs}{
+\framet{Reifying stack computation}{
+% From stack functions to stack programs
 \begin{itemize}\itemsep6ex
-\item Code generation and optimization need inspection.
+\item Code generation needs inspection.
 \item Introduce \emph{data} representation denoting stack functions.
-\item Specify by homomorphism, and calculate implementation.
+\item Specify by homomorphism; solve for implementation.
 \end{itemize}
 }
 
@@ -512,26 +535,38 @@ Haskell:
 \begin{code}
 \ (x,y) -> 2 * x + 3 * y
 \end{code}
-Algebraic translation:
+Standard algebraic translation (\href{http://conal.net/papers/compiling-to-categories}{\emph{Compiling
+to categories}}):
 \begin{code}
-addC .
-(mulC . (const 2 *** exl) . dup *** mulC . (const 3 *** exr) . dup) .
-dup
+   addC
+.  (mulC . (const 2 *** exl) . dup *** mulC . (const 3 *** exr) . dup)
+.  dup
 \end{code}
 Stack program:
 \begin{code}
-[  Dup,Push,Dup,Push,Const 2,Pop,Swap,Push,Exl,Pop,
-   Swap,Mul,Pop,Swap,Push,Dup,Push,Const 3,Pop,Swap,
-   Push,Exr,Pop,Swap,Mul,Pop,Swap,Add ]
+[  Dup,Push,Dup,Push,Const 2,Pop,Swap,Push,Exl,Pop
+,  Swap,Mul,Pop,Swap,Push,Dup,Push,Const 3,Pop,Swap
+,  Push,Exr,Pop,Swap,Mul,Pop,Swap,Add ]
 \end{code}
 %% To do: better optimization
 }
 
+\framet{What have we done?}{
+\begin{itemize}\itemsep3ex
+\item Identify simple essence of stack computation (|StackFun|).
+\item Relate to regular functions (|stackFun|).
+\item Identify common algebraic vocabulary (|Category| etc).
+\item Reify stack computation (|StackProg|).
+\item Solve standard homomorphism equations $\Rightarrow$ compiler.
+\item Standard translation from Haskell to algebraic form.
+\end{itemize}
+}
+
 \framet{To do}{
 \begin{itemize}\itemsep4ex
-\item Coproducts and closure
-\item Better optimization
-\item More realistic machine model
+\item Sum and higher-order types
+\item Better generic optimization
+\item More ambitious machine models
 \end{itemize}
 }
 
