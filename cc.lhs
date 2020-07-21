@@ -510,17 +510,19 @@ instance ProductCat StackProg where
 \framet{Example}{
 Haskell:
 \begin{code}
-\ (x,y) -> x + 3 * y
+\ (x,y) -> 2 * x + 3 * y
 \end{code}
 Algebraic translation:
 \begin{code}
-addC . (exl *** mulC . (const 3 *** exr) . dup) . dup
+addC .
+(mulC . (const 2 *** exl) . dup *** mulC . (const 3 *** exr) . dup) .
+dup
 \end{code}
 Stack program:
 \begin{code}
-[  Dup,Push,Exl,Pop,Swap,Push,Dup,Push,
-   Const 3,Pop,Swap,Push,Exr,Pop,Swap,
-   Mul,Pop,Swap,Add]
+[  Dup,Push,Dup,Push,Const 2,Pop,Swap,Push,Exl,Pop,
+   Swap,Mul,Pop,Swap,Push,Dup,Push,Const 3,Pop,Swap,
+   Push,Exr,Pop,Swap,Mul,Pop,Swap,Add ]
 \end{code}
 %% To do: better optimization
 }
@@ -528,7 +530,7 @@ Stack program:
 \framet{To do}{
 \begin{itemize}\itemsep4ex
 \item Coproducts and closure
-\item Optimization
+\item Better optimization
 \item More realistic machine model
 \end{itemize}
 }
