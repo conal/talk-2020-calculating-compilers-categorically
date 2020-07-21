@@ -15,8 +15,8 @@
 %include formatting.fmt
 
 % \title{Calculating compilers categorically}
-\title{Cheap \& cheerful compiler calculation}
-\date{August 2020}
+\title[]{Cheap \& cheerful compiler calculation}
+\date[]{Haskell Love 2020}
 % \date{\today{} (draft)}
 % \institute[]{Target}
 
@@ -32,6 +32,10 @@
 \begin{document}
 
 \frame{\titlepage}
+
+\title{Compiler calculation}
+\title{Cheap \& cheerful compiler calculation}
+\date{Haskell Love 2020}
 
 \framet{Goals}{
 \begin{itemize}\itemsep6ex
@@ -97,7 +101,7 @@ stackFun f = SF (first f)
 \framet{Analogy (homomorphism)}{
 \parskip5ex
 
-Specification: |stackFun| defines a \emph{precise analogy}
+Specification: |stackFun| defines a \emph{precise (non-leaky) analogy}
 
 %format L = "\mathop{\mathbb{L}}"
 \begin{itemize}\itemsep5ex
@@ -120,6 +124,7 @@ class Category k where
 Analogy/homomorphism properties (``functor''):
 \begin{code}
 id = stackFun id
+
 stackFun g . stackFun f = stackFun (g . f)
 \end{code}
 
@@ -192,13 +197,17 @@ instance Category StackFun where
 \end{code}
 }
 
-%format lassocP = lassoc
-%format rassocP = rassoc
-%format swapP = swap
-%format AssociativePCat = AssociativeCat
-%format BraidedPCat = BraidedCat
+%format subx = "\!_\times"
+%format subx = "{}"
+
+%format lassocP = lassoc subx
+%format rassocP = rassoc subx
+%format swapP = swap subx
+%format AssociativePCat = AssociativeCat subx
+%format BraidedPCat = BraidedCat subx
 
 \framet{Easy operations}{
+\vspace{2ex}
 \begin{code}
 class AssociativePCat k where
   rassocP :: ((a :* b) :* c) `k` (a :* (b :* c))
@@ -259,14 +268,14 @@ Focus on |first|, since
 \begin{code}
 f *** g = first f . second g = second g . first f
 
-second g = swap . first g . swap
+second g = swapP . first g . swapP
 \end{code}
 
 %% (f *** g) . (p *** q) == (f . p) *** (g . q)
 %% first f . second g == f *** g
 %% second g . first f == f *** g
 %% f *** g  = first f . second g
-%%          = first f . swap . first g . swap
+%%          = first f . swapP . first g . swapP
 
 
 }
@@ -318,11 +327,11 @@ Sufficient definition:
 \begin{code}
 instance MonoidalPCat StackFun where
   first (SF f) = SF (lassocP . f . rassocP)
-  second g = swap . first g . swap
+  second g = swapP . first g . swapP
   f *** g = first f . second g
 \end{code}
 Note right-to-left argument evaluation.
-For left-to-right, |f *** g = second g . first f|.
+For left-to-right, define |f *** g = second g . first f|.
 }
 
 \framet{Parallel composition}{
@@ -330,8 +339,8 @@ For left-to-right, |f *** g = second g . first f|.
 \begin{code}
     stackFun f *** stackFun g
 ==  {- definitions above -}
-    SF (  lassocP . first f . rassocP . first swap .
-          lassocP . first g . rassocP . first swap)
+    SF (  lassocP . first f . rassocP . first swapP .
+          lassocP . first g . rassocP . first swapP)
 ==  {- below -}
     stackFun (f *** g)
 \end{code}
@@ -347,31 +356,33 @@ Step by step\out{ (right-to-left)}:
 
 \vspace{-2ex}
 \begin{code}
-                 ((a,b)          ,z)
-first swap  -->  ((b,a)          ,z)
-rassocP     -->  (b              ,(a,z))
-first g     -*>  (g b            ,(a,z))    -- steps for |g|
-lassocP     -->  ((g b,a)        ,z)
-first swap  -->  ((a, g b)       ,z)
-rassocP     -->  (a              ,(g b,z))
-first f     -*>  (f a            ,(g b,z))  -- steps for |f|
-lassocP     -->  ((f a, g b)     ,z)        -- |== first (f *** g) ((a,b),z)|
+                  ((a,b)          ,z)
+first swapP  -->  ((b,a)          ,z)
+rassocP      -->  (b              ,(a,z))
+first g      -*>  (g b            ,(a,z))    -- steps for |g|
+lassocP      -->  ((g b,a)        ,z)
+first swapP  -->  ((a, g b)       ,z)
+rassocP      -->  (a              ,(g b,z))
+first f      -*>  (f a            ,(g b,z))  -- steps for |f|
+lassocP      -->  ((f a, g b)     ,z)        -- |== first (f *** g) ((a,b),z)|
 \end{code}
 }
 
 \framet{Parallel composition}{
 \begin{code}
     stackFun f *** stackFun g
-==  SF (  lassocP . first f . rassocP . first swap .
-          lassocP . first g . rassocP . first swap)
+==  SF (  lassocP . first f . rassocP . first swapP .
+          lassocP . first g . rassocP . first swapP)
 \end{code}
 
 We've recursively flattened to \emph{purely sequential} compositions of:
 \begin{itemize}\itemsep2ex
 \item |first p| for a few primitive functions |p|, 
-\item |rassocP| and |lassocP| in balanced pairs.
+\item |rassocP| and |lassocP| in balanced pairs (``push'' and ``pop'').
 \end{itemize}
 }
+
+%if False
 
 %format MonoidalSCat = MonoidalS
 %format CoproductCat = Cocartesian
@@ -397,6 +408,8 @@ class CoproductCat k where
 Works out as well.
 }
 
+%endif
+
 \framet{From stack functions to stack programs}{
 \begin{itemize}\itemsep6ex
 \item Code generation and optimization need inspection.
@@ -418,12 +431,12 @@ data Prim :: * -> * -> * NOP where  -- Notation
   ...
 
 evalPrim :: Prim a b -> (a -> b)    -- Denotation
-evalPrim Exl     = exl
-evalPrim Exr     = exr
-evalPrim Dup     = dup
+evalPrim Exl     = exl      -- |fst|
+evalPrim Exr     = exr      -- |snd|
+evalPrim Dup     = dup      -- |dup|
                  ...
-evalPrim Negate  = negateC
-evalPrim Add     = addC
+evalPrim Negate  = negateC  -- |negate|
+evalPrim Add     = addC     -- |uncurry (+)|
                  ...
 \end{code}
 }
@@ -449,6 +462,7 @@ evalStackOp Pop       = lassocP
 %format ++* = ++
 %format :< = "\triangleleft"
 %% %format :< = ::
+%format :< = "\mathbin{:\hspace{-0.4ex}<}"
 %% Linear chains of stack operations:
 \begin{code}
 infixr 5 :<
@@ -478,7 +492,7 @@ instance Category StackProg where
 
 instance MonoidalPCat StackFun where
   first (SP ops) = SP (Push :< ops ++* Pop :< Nil)
-  second g = swap . first g . swap
+  second g = swapP . first g . swapP
   f *** g = first f . second g
 
 primProg :: Prim a b -> StackProg a b
@@ -493,24 +507,30 @@ instance ProductCat StackProg where
 \end{code}
 }
 
-\framet{Next}{
-\begin{itemize}\itemsep2ex
-\item Closure
-\item Examples
-\item Optimization
-\item More with |CoproductCat|, including multi-constructor |case| expressions.
-      Maybe start with conditionals.
-      Hm!
-      I don't think I can define |(+++)| on |StackProg|, because the representation is a linear sequence of stack operations.
-\end{itemize}
+\framet{Example}{
+Haskell:
+\begin{code}
+\ (x,y) -> x + 3 * y
+\end{code}
+Algebraic translation:
+\begin{code}
+addC . (exl *** mulC . (const 3 *** exr) . dup) . dup
+\end{code}
+Stack program:
+\begin{code}
+[  Dup,Push,Exl,Pop,Swap,Push,Dup,Push,
+   Const 3,Pop,Swap,Push,Exr,Pop,Swap,
+   Mul,Pop,Swap,Add]
+\end{code}
+%% To do: better optimization
 }
 
-\framet{Future work}{
-\begin{itemize}\itemsep6ex
-\item Generalize |StackFun| to category transformer.
-\item ...
+\framet{To do}{
+\begin{itemize}\itemsep4ex
+\item Coproducts and closure
+\item Optimization
+\item More realistic machine model
 \end{itemize}
-
 }
 
 \end{document}
