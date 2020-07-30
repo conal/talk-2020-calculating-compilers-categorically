@@ -338,6 +338,7 @@ first (SF (first f)) == SF (first (first f))
 \end{code}
 \vspace{-5ex}
 
+%if False
 Types:
 
 \vspace{-2ex}
@@ -348,6 +349,7 @@ first (  first  f)  :: forall z. (a :* b) :* z -> (c :* b) :* z
 \end{code}
 \vspace{-5ex}
 
+%endif
 For stack computation, temporarily move |b| aside:
 \begin{code}
    first (first f)
@@ -380,8 +382,9 @@ For left-to-right, define |f *** g = second g . first f|.
 }
 
 \framet{Parallel composition}{
-\small
 \vspace{2ex}
+%if False
+\small
 \begin{code}
     stackFun f *** stackFun g
 ==  {- definitions above -}
@@ -396,6 +399,13 @@ For left-to-right, define |f *** g = second g . first f|.
 %%     SF (first f) *** SF (first g)
 
 \vspace{-2ex}
+%else
+Simplifying,
+\begin{code}
+stackFun f *** stackFun g == SF (  lassocP . first f . rassocP . first swapP .
+                                   lassocP . first g . rassocP . first swapP)
+\end{code}
+%endif
 Stack evolution\out{ (right-to-left)}:
 %format --> = "\ \longmapsto\ "
 %format -*> = "\ \longmapsto\!\!\!^\ast\ "
@@ -416,9 +426,8 @@ lassocP      -->  ((f a, g b)     ,z)        -- |== first (f *** g) ((a,b),z)|
 
 \framet{Parallel composition}{
 \begin{code}
-    stackFun f *** stackFun g
-==  SF (  lassocP . first f . rassocP . first swapP .
-          lassocP . first g . rassocP . first swapP)
+stackFun f *** stackFun g == SF (  lassocP . first f . rassocP . first swapP .
+                                   lassocP . first g . rassocP . first swapP)
 \end{code}
 
 We've recursively flattened to \emph{purely sequential} compositions of:
