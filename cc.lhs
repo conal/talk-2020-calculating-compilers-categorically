@@ -3,9 +3,11 @@
 % Presentation
 %\documentclass[aspectratio=1610]{beamer} % Macbook Pro screen 16:10
 %% \documentclass{beamer} % default aspect ratio 4:3
-\documentclass[handout]{beamer}
+\documentclass[handout,aspectratio=169]{beamer}  % ,10pt
 
 % \setbeameroption{show notes} % un-comment to see the notes
+
+\usepackage[many]{tcolorbox}
 
 \input{macros}
 
@@ -40,6 +42,7 @@
 \title\tit
 \date{Haskell Love 2020}
 
+%if False
 \framet{Goals}{
 \begin{itemize}\itemsep6ex
 \item
@@ -52,25 +55,16 @@
 %% \item  Total
 \end{itemize}
 }
+%endif
 
 \framet{Example}{
-Source:
+Source code:
 \begin{code}
 \ (x,y) -> 2 * x + 3 * y
 \end{code}
-%if False
-Standard algebraic translation (\href{http://conal.net/papers/compiling-to-categories}{\emph{Compiling
-to categories}}):
-\begin{code}
-   addC
-.  (mulC . (const 2 *** exl) . dup *** mulC . (const 3 *** exr) . dup)
-.  dup
-\end{code}
-%else
 \vspace{2ex}
 
-%endif
-Stack program:
+Object code:
 \begin{code}
 [  Dup,Push,Dup,Push,Const 2,Pop,Swap,Push,Exl,Pop
 ,  Swap,Mul,Pop,Swap,Push,Dup,Push,Const 3,Pop,Swap
@@ -168,21 +162,29 @@ Trivial (already solved), but we can simplify/optimize:
 \end{code}
 }
 
-
 \framet{Sequential composition}{
 \vspace{4ex}
 \begin{code}
 stackFun g . stackFun f = stackFun (g . f)
 \end{code}
 
-\vspace{-2ex}
-Simplify LHS:
+Simplify each side:\\
+\hspace{2ex}
+\begin{minipage}[c]{0.4\textwidth}
+\begin{tcolorbox}
+\mathindent0ex
 \begin{code}
    stackFun g . stackFun f
 =  {- definition of |stackFun| -}
    SF (first g) . SF (first f)
 \end{code}
-Then RHS:
+\end{tcolorbox}
+\end{minipage}
+%\begin{minipage}[b]{0ex}{\rule[1ex]{0.5pt}{1.05in}}\end{minipage}
+\hspace{2ex}
+\begin{minipage}[c]{0.4\textwidth}\setlength\mathindent{2ex}
+\begin{tcolorbox}
+\mathindent0ex
 \begin{code}
    stackFun (g . f)
 =  {- definition of |stackFun| -}
@@ -190,7 +192,10 @@ Then RHS:
 =  {- property of |first| and |(.)| -}
    SF (first g . first f)
 \end{code}
-Simplified specification:
+\end{tcolorbox}
+\end{minipage}
+
+Equivalent specification:
 \begin{code}
 SF (first g) . SF (first f) == SF (first g . first f)
 \end{code}
@@ -304,6 +309,7 @@ second g = swapP . first g . swapP
 
 \framet{Homomorphism property for |first|}{
 \vspace{3ex}
+\small
 \begin{code}
 first (stackFun f) == stackFun (first f)
 \end{code}
@@ -357,6 +363,7 @@ For left-to-right, define |f *** g = second g . first f|.
 }
 
 \framet{Parallel composition}{
+\small
 \vspace{2ex}
 \begin{code}
     stackFun f *** stackFun g
@@ -442,7 +449,8 @@ Works out as well.
 }
 
 \framet{Primitive operations}{
-\vspace{2ex}
+\vspace{3ex}
+\small
 \begin{code}
 data Prim :: * -> * -> * NOP where  -- Notation
   Exl  :: Prim (a :* b) a
@@ -488,7 +496,6 @@ evalStackOp Pop       = lassocP
 %format :< = "\mathbin{:\hspace{-0.4ex}<}"
 %% Linear chains of stack operations:
 \begin{code}
-infixr 5 :<
 data StackOps :: * -> * -> * NOP where
   Nil   :: StackOps a a
   (:<)  :: StackOp a b -> StackOps b c -> StackOps a c
@@ -553,10 +560,10 @@ Stack program:
 
 \framet{What have we done?}{
 \begin{itemize}\itemsep3ex
-\item Identify simple essence of stack computation (|StackFun|).
-\item Relate to regular functions (|stackFun|).
-\item Identify common algebraic vocabulary (|Category| etc).
-\item Reify stack computation (|StackProg|).
+\item Identify simple essence of stack computation\out{ (|StackFun|)}.
+\item Relate to regular functions\out{ (|stackFun|)}.
+\item Identify common algebraic vocabulary\out{ (|Category| etc)}.
+\item Reify stack computation\out{ (|StackProg|)}.
 \item Solve standard homomorphism equations $\Rightarrow$ compiler.
 \item Standard translation from Haskell to algebraic form.
 \end{itemize}
