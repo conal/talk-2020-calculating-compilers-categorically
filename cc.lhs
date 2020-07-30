@@ -73,6 +73,45 @@ Object code:
 %% To do: better optimization
 }
 
+%if True
+\nc\cvar[2]{\textcolor{#1}{\Varid{#2}}}
+
+\nc\operS[1]{\cvar{red}{#1}}
+\nc\operC[1]{\cvar{blue}{#1}}
+
+%{
+
+%if False
+%format Dup = "\operS{Dup}"
+%format Push = "\operS{Push}"
+%format Pop = "\operS{Pop}"
+%format Exl = "\operS{Exl}"
+%format Exr = "\operS{Exr}"
+%format Swap = "\operS{Swap}"
+%endif
+
+%format Add = "\operC{Add}"
+%format Mul = "\operC{Mul}"
+%format Const = "\operC{Const}"
+
+\framet{Example}{
+Source code:
+\begin{code}
+\ (x,y) -> 2 * x + 3 * y
+\end{code}
+\vspace{2ex}
+
+Object code:
+\begin{code}
+[  Dup,Push,Dup,Push,Const 2,Pop,Swap,Push,Exl,Pop
+,  Swap,Mul,Pop,Swap,Push,Dup,Push,Const 3,Pop,Swap
+,  Push,Exr,Pop,Swap,Mul,Pop,Swap,Add ]
+\end{code}
+%% To do: better optimization
+}
+%endif
+%}
+
 \framet{Recipe}{
 \begin{itemize}\itemsep8ex
 \item Identify essence of stack computation.
