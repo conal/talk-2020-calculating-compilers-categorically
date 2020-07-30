@@ -3,7 +3,7 @@
 % Presentation
 %\documentclass[aspectratio=1610]{beamer} % Macbook Pro screen 16:10
 %% \documentclass{beamer} % default aspect ratio 4:3
-\documentclass[handout,aspectratio=169]{beamer}  % ,10pt
+\documentclass[aspectratio=169]{beamer}  % handout,,10pt
 
 % \setbeameroption{show notes} % un-comment to see the notes
 
@@ -17,7 +17,8 @@
 %include formatting.fmt
 
 % \nc\tit{Calculating compilers categorically}
-\nc\tit{Cheap \& cheerful compiler calculation}
+% \nc\tit{Cheap \& cheerful compiler calculation}
+\nc\tit{Compiling gracefully}
 
 % \title[]\tit
 \title[]\tit
@@ -57,6 +58,7 @@
 }
 %endif
 
+%if True
 \framet{Example}{
 Source code:
 \begin{code}
@@ -73,7 +75,7 @@ Object code:
 %% To do: better optimization
 }
 
-%if True
+%else
 \nc\cvar[2]{\textcolor{#1}{\Varid{#2}}}
 
 \nc\operS[1]{\cvar{red}{#1}}
@@ -112,7 +114,10 @@ Object code:
 %endif
 %}
 
-\framet{Recipe}{
+%% Apply denotational design
+
+\framet{Grace}{
+\pause
 \begin{itemize}\itemsep8ex
 \item Identify essence of stack computation.
 \item Specify by precise analogy.
@@ -124,17 +129,6 @@ Object code:
 
 \framet{The essence of stack computation}{
 \parskip4ex
-For a function |f :: a -> b|,
-\begin{itemize}
-\itemsep4ex
-\item
-  Start with a stack containing |a| on top.
-\item
-  Replace |x :: a| by |f x :: b|, leaving the rest.
-\end{itemize}
-
-\vspace{5ex}
-Formally,
 \begin{code}
 first :: (a -> b) -> forall z. (a :* z -> b :* z)
 
@@ -250,7 +244,7 @@ SF (first g) . SF (first f) == SF (first g . first f)
 
 Generalize/strengthen:
 \begin{code}
-SF g . SF f == SF (g . f)  -- Now in solved form.
+SF g' . SF f' == SF (g' . f')  -- Now in solved form.
 \end{code}
 
 \vspace{4ex}
@@ -297,22 +291,6 @@ instance BraidedPCat StackFun where
 
 %format MonoidalPCat = MonoidalP
 %format MonoidalPCat = Monoidal "\!_" :*
-%format ProductCat = Cartesian
-\framet{Easy operations}{
-\begin{code}
-class MonoidalPCat k => ProductCat k where
-  exl  :: (a :* b) `k` a
-  exr  :: (a :* b) `k` b
-  dup  :: a `k` (a :* a)
-\end{code} 
-Homomorphisms are again in solved form.
-\begin{code}
-instance ProductCat StackFun where
-  exl  = stackFun exl
-  exr  = stackFun exr
-  dup  = stackFun dup
-\end{code}
-}
 
 \framet{Parallel composition}{
 \vspace{6ex}
@@ -387,7 +365,7 @@ first (SF (first f)) == SF (lassocP . first f . rassoc)
 \end{code}
 Strengthen/generalize:
 \begin{code}
-first (SF f) == SF (lassocP . f . rassoc)  -- Now in solved form.
+first (SF f') == SF (lassocP . f' . rassoc)  -- Now in solved form.
 \end{code}
 
 Sufficient definition:
@@ -448,6 +426,23 @@ We've recursively flattened to \emph{purely sequential} compositions of:
 \item |first p| for a few primitive functions |p|, 
 \item |rassocP| and |lassocP| in balanced pairs (``push'' and ``pop'').
 \end{itemize}
+}
+
+%format ProductCat = Cartesian
+\framet{Some more easy operations}{
+\begin{code}
+class MonoidalPCat k => ProductCat k where
+  exl  :: (a :* b) `k` a
+  exr  :: (a :* b) `k` b
+  dup  :: a `k` (a :* a)
+\end{code} 
+Homomorphisms are again in solved form.
+\begin{code}
+instance ProductCat StackFun where
+  exl  = stackFun exl
+  exr  = stackFun exr
+  dup  = stackFun dup
+\end{code}
 }
 
 %if False
