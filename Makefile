@@ -45,5 +45,5 @@ STASH=conal@conal.net:/home/conal/web/talks
 web: web-token
 
 web-token: $(TARG).pdf
-	scp $? $(STASH)/stack-compiler.pdf
+	scp $? $(STASH)/compiling-gracefully.pdf
 	touch $@
