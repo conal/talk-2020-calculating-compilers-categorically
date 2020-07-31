@@ -4,8 +4,11 @@ Alternative title: *Calculating compilers categorically*
 
 Talk for [Haskell Love 2020](https://haskell.love/).
 
-You can find [the slides (PDF)](http://conal.net/talks/compiling-gracefully.pdf) in [my talks folder](http://conal.net/talks/).
-A video will be available.
+Links:
+
+*   [Slides (PDF)](http://conal.net/talks/compiling-gracefully.pdf)
+*   Video will be available.
+*   Incomplete draft paper: [*Calculating compilers categorically*](http://conal.net/papers/calculating-compilers-categorically/).
 
 **Abstract**:
 
