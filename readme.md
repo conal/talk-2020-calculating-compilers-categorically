@@ -1,4 +1,6 @@
-## Calculating compilers categorically
+## Compiling gracefully
+
+Alternative title: Calculating compilers categorically
 
 Talk for [Haskell Love 2020](https://haskell.love/).
 
