@@ -118,13 +118,13 @@ Object code:
 
 \framet{Grace}{
 \pause
-\begin{itemize}\itemsep8ex
+\begin{enumerate}\itemsep8ex
 \item Identify essence of stack computation.
 \item Specify by precise analogy.
 \item Solve for correct implementation.
 % \item Profit!
 % \item Apply to more interesting machines.
-\end{itemize}
+\end{enumerate}
 }
 
 \framet{The essence of stack computation}{
@@ -180,11 +180,17 @@ stackFun g . stackFun f = stackFun (g . f)
 Solve each equation for its one unknown (LHS operation).
 }
 
-\framet{Sequential composition}{
+\framet{Identity}{
+Homomorphism equation:
+\vspace{3ex}
 \begin{code}
 id = stackFun id
 \end{code}
 
+%if True
+\vspace{5ex}
+Already in solved form.
+%else
 Trivial (already solved), but we can simplify/optimize:
 \begin{code}
    stackFun id
@@ -193,6 +199,7 @@ Trivial (already solved), but we can simplify/optimize:
 =  {- property of |first| and |id| -}
    SF id
 \end{code}
+%endif
 }
 
 \framet{Sequential composition}{
@@ -235,7 +242,7 @@ SF (first g) . SF (first f) == SF (first g . first f)
 }
 
 \framet{Sequential composition}{
-\vspace{2ex}
+\vspace{3ex}
 \begin{code}
 SF (first g) . SF (first f) == SF (first g . first f)
 \end{code}
@@ -243,6 +250,7 @@ SF (first g) . SF (first f) == SF (first g . first f)
 \vspace{1ex}
 
 Generalize/strengthen:
+\vspace{2ex}
 \begin{code}
 SF g' . SF f' == SF (g' . f')  -- Now in solved form.
 \end{code}
@@ -266,8 +274,9 @@ instance Category StackFun where
 %format AssociativePCat = AssociativeCat subx
 %format BraidedPCat = BraidedCat subx
 
-\framet{Easy operations}{
-\vspace{2ex}
+%if True
+\framet{More easy operations}{
+\vspace{3ex}
 \begin{code}
 class AssociativePCat k where
   rassocP :: ((a :* b) :* c) `k` (a :* (b :* c))
@@ -288,12 +297,13 @@ instance BraidedPCat StackFun where
   swapP = stackFun swapP
 \end{code}
 }
+%endif
 
 %format MonoidalPCat = MonoidalP
 %format MonoidalPCat = Monoidal "\!_" :*
 
 \framet{Parallel composition}{
-\vspace{6ex}
+\vspace{4ex}
 \begin{code}
 class MonoidalPCat k where
   (***) :: (a `k` c) -> (b `k` d) -> ((a :* b) `k` (c :* d))
@@ -332,7 +342,7 @@ first (stackFun f) == stackFun (first f)
 \end{code}
 \vspace{-4.5ex}
 
-Simplifying,
+Inlining,
 \begin{code}
 first (SF (first f)) == SF (first (first f))
 \end{code}
@@ -400,7 +410,7 @@ For left-to-right, define |f *** g = second g . first f|.
 
 \vspace{-2ex}
 %else
-Simplifying,
+Inlining,
 \begin{code}
 stackFun f *** stackFun g == SF (  lassocP . first f . rassocP . first swapP .
                                    lassocP . first g . rassocP . first swapP)
@@ -437,8 +447,9 @@ We've recursively flattened to \emph{purely sequential} compositions of:
 \end{itemize}
 }
 
+%if True
 %format ProductCat = Cartesian
-\framet{Some more easy operations}{
+\framet{Still more easy operations}{
 \begin{code}
 class MonoidalPCat k => ProductCat k where
   exl  :: (a :* b) `k` a
@@ -453,6 +464,7 @@ instance ProductCat StackFun where
   dup  = stackFun dup
 \end{code}
 }
+%endif
 
 %if False
 
