@@ -61,7 +61,7 @@ Object code:
 
 %% Apply denotational design
 
-\framet{Grace}{
+\framet{Compiling gracefully}{
 \pause
 \begin{enumerate}\itemsep8ex
 \item Identify essence of stack computation.
@@ -73,20 +73,20 @@ Object code:
 }
 
 \framet{The essence of stack computation}{
-\parskip4ex
+\parskip1ex
+\vspace{6ex}
 \begin{code}
-first :: (a -> b) -> forall z. (a :* z -> b :* z)
+first :: (a -> b) -> forall z. (a :* z -> b :* z)  -- ``accumulator'' and ``stack''
 
 first f (a,z) = (f a, z)
 \end{code}
-}
+\pause
 
-\framet{Package as new type}{
+Encapsulate in a new type:
 \begin{code}
 newtype StackFun a b = SF (forall z. a :* z -> b :* z)
 
 NOP
-
 stackFun :: (a -> b) -> StackFun a b
 stackFun f = SF (first f)
 \end{code}
@@ -311,7 +311,6 @@ second g = swapP . first g . swapP
 
 \framet{Homomorphism property for |first|}{
 \vspace{3ex}
-\small
 \begin{code}
 first (stackFun f) == stackFun (first f)
 \end{code}
@@ -335,7 +334,9 @@ first (  first  f)  :: forall z. (a :* b) :* z -> (c :* b) :* z
 \vspace{-5ex}
 
 %endif
-For stack computation, temporarily move |b| aside:
+%% For stack computation, temporarily move |b| aside:
+Can we eliminate a |first|?
+\pause
 \begin{code}
    first (first f)
 =  {- definition of |first| on |(->)| -}
@@ -343,6 +344,31 @@ For stack computation, temporarily move |b| aside:
 =  {- definition of |lassocP|, |rassocP|, and |first| on |(->)| -}
    lassocP . first f . rassocP
 \end{code}
+}
+
+%format --> = "\ \longmapsto\ "
+%format -*> = "\ \longmapsto\!\!\!^\ast\ "
+
+\framet{Homomorphism property for |first|}{
+\parskip3ex
+\vspace{2ex}
+\begin{code}
+first (first f) == lassocP . first f . rassocP
+\end{code}
+
+Accumulator/stack evolution:
+
+\vspace{1ex}
+\begin{code}
+              ((a,b)          ,z)
+rassocP  -->  (a              ,(b,z))    -- \emph{push}
+first f  -*>  (f a            ,(b,z))    -- steps for |f|
+lassocP  -->  ((f a,b)        ,z)        -- \emph{pop}
+\end{code}
+\vspace{-3ex}
+
+%% Now we know what the stack is for!
+The stack's purpose revealed!
 }
 
 \framet{Homomorphism property for |first|}{
@@ -354,7 +380,6 @@ Strengthen/generalize:
 \begin{code}
 first (SF f') == SF (lassocP . f' . rassoc)  -- Now in solved form.
 \end{code}
-
 Sufficient definition:
 \begin{code}
 instance MonoidalPCat StackFun where
@@ -391,11 +416,7 @@ stackFun f *** stackFun g == SF (  lassocP . first f . rassocP . first swapP .
                                    lassocP . first g . rassocP . first swapP)
 \end{code}
 %endif
-Stack evolution\out{ (right-to-left)}:
-%format --> = "\ \longmapsto\ "
-%format -*> = "\ \longmapsto\!\!\!^\ast\ "
-
-\vspace{-2ex}
+Accumulator/stack evolution\out{ (right-to-left)}:
 \begin{code}
                   ((a,b)          ,z)
 first swapP  -->  ((b,a)          ,z)
@@ -607,7 +628,7 @@ data Prim :: * -> * -> * NOP where  -- Notation
 Or relax the representation.
 }
 
-\framet{What have we done?}{
+\framet{Compiling gracefully}{
 \begin{itemize}\itemsep4ex
 \item Identify simple essence of stack computation\out{ (|StackFun|)}.
 \item Relate to regular functions\out{ (|stackFun|)}.
