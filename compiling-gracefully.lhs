@@ -43,22 +43,6 @@
 \title\tit
 \date{Haskell Love 2020}
 
-%if False
-\framet{Goals}{
-\begin{itemize}\itemsep6ex
-\item
-  Compiler from functional language to stack machine
-\item
-  Specification: simple essence of stack computation
-\item
-  Correct implementation as solution to standard algebra problems
-%% \item Statically, polymorphically typed
-%% \item  Total
-\end{itemize}
-}
-%endif
-
-%if True
 \framet{Example}{
 Source code:
 \begin{code}
@@ -74,45 +58,6 @@ Object code:
 \end{code}
 %% To do: better optimization
 }
-
-%else
-\nc\cvar[2]{\textcolor{#1}{\Varid{#2}}}
-
-\nc\operS[1]{\cvar{red}{#1}}
-\nc\operC[1]{\cvar{blue}{#1}}
-
-%{
-
-%if False
-%format Dup = "\operS{Dup}"
-%format Push = "\operS{Push}"
-%format Pop = "\operS{Pop}"
-%format Exl = "\operS{Exl}"
-%format Exr = "\operS{Exr}"
-%format Swap = "\operS{Swap}"
-%endif
-
-%format Add = "\operC{Add}"
-%format Mul = "\operC{Mul}"
-%format Const = "\operC{Const}"
-
-\framet{Example}{
-Source code:
-\begin{code}
-\ (x,y) -> 2 * x + 3 * y
-\end{code}
-\vspace{2ex}
-
-Object code:
-\begin{code}
-[  Dup,Push,Dup,Push,Const 2,Pop,Swap,Push,Exl,Pop
-,  Swap,Mul,Pop,Swap,Push,Dup,Push,Const 3,Pop,Swap
-,  Push,Exr,Pop,Swap,Mul,Pop,Swap,Add ]
-\end{code}
-%% To do: better optimization
-}
-%endif
-%}
 
 %% Apply denotational design
 
@@ -160,7 +105,12 @@ Specification: |stackFun| defines a \emph{precise (non-leaky) analogy}
 \end{itemize}
 }
 
-%% Domain-independent translation to \& from standard vocabulary.
+%format ~> = "\leadsto"
+
+%format `k` = ~>
+%format k = (~>)
+
+%format kk = "\Varid{k}"
 
 \framet{Identify a useful vocabulary}{
 For functions and other function-like things:
@@ -169,6 +119,9 @@ class Category k where
   id   :: a `k` a
   (.)  :: (b `k` c) -> (a `k` b) -> (a `k` c)
 \end{code}
+\emph{Bonus:} automatically translate from Haskell!
+(See \href{http://conal.net/papers/compiling-to-categories}{\emph{Compiling
+to categories}}.)
 
 Analogy/homomorphism properties (``functor''):
 \begin{code}
@@ -176,7 +129,29 @@ id = stackFun id
 
 stackFun g . stackFun f = stackFun (g . f)
 \end{code}
+Solve each equation for its one unknown (LHS operation).
+}
 
+%% Sadly, GHC no longer supports infix operators for type variables, so we
+%% have to write something uglier.
+
+\framet{Identify a useful vocabulary}{
+For functions and other function-like things:
+\begin{code}
+class Category kk where
+  id   :: a `kk` a
+  (.)  :: (b `kk` c) -> (a `kk` b) -> (a `kk` c)
+\end{code}
+\emph{Bonus:} automatically translate from Haskell!
+(See \href{http://conal.net/papers/compiling-to-categories}{\emph{Compiling
+to categories}}.)
+
+Analogy/homomorphism properties (``functor''):
+\begin{code}
+id = stackFun id
+
+stackFun g . stackFun f = stackFun (g . f)
+\end{code}
 Solve each equation for its one unknown (LHS operation).
 }
 
@@ -597,8 +572,7 @@ Haskell:
 \begin{code}
 \ (x,y) -> 2 * x + 3 * y
 \end{code}
-Standard algebraic translation (\href{http://conal.net/papers/compiling-to-categories}{\emph{Compiling
-to categories}}):
+Standard algebraic translation:
 \begin{code}
    addC
 .  (mulC . (const 2 *** exl) . dup *** mulC . (const 3 *** exr) . dup)
@@ -613,6 +587,26 @@ Stack program:
 %% To do: better optimization
 }
 
+%format +++ = "\!+\!"
+%format :+++ = ":\!\!+"
+
+\framet{Sum types and higher-order functions}{
+\begin{itemize}\itemsep3ex
+\item Sums (``coproducts'') are dual to products: |(+++), inl, inr, jam|.
+\item Higher-order functions (``exponentials''): |curry, uncurry, apply|.
+\end{itemize}
+
+Additional ``primitives'':
+\begin{code}
+data Prim :: * -> * -> * NOP where  -- Notation
+  ...
+  (:+++) :: StackOps a c -> StackOps b d -> Prim (a :+ b) (c :+ d)
+  Apply :: Prim ((a -> b) :* a) b
+  Curry :: StackProg (a :* b) c -> Prim a (b -> c)
+\end{code}
+Or relax the representation.
+}
+
 \framet{What have we done?}{
 \begin{itemize}\itemsep3ex
 \item Identify simple essence of stack computation\out{ (|StackFun|)}.
@@ -625,8 +619,7 @@ Stack program:
 }
 
 \framet{To do}{
-\begin{itemize}\itemsep4ex
-\item Sum and higher-order types
+\begin{itemize}\itemsep6ex
 \item Better generic optimization
 \item More ambitious machine models
 \end{itemize}
