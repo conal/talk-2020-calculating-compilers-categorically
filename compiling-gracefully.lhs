@@ -608,7 +608,7 @@ Or relax the representation.
 }
 
 \framet{What have we done?}{
-\begin{itemize}\itemsep3ex
+\begin{itemize}\itemsep4ex
 \item Identify simple essence of stack computation\out{ (|StackFun|)}.
 \item Relate to regular functions\out{ (|stackFun|)}.
 \item Identify common algebraic vocabulary\out{ (|Category| etc)}.
