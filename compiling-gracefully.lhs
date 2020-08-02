@@ -76,7 +76,11 @@ Object code:
 \parskip1ex
 \vspace{6ex}
 \begin{code}
-first :: (a -> b) -> forall z. (a :* z -> b :* z)  -- ``accumulator'' and ``stack''
+forall z. (a :* z -> b :* z)  -- ``accumulator'' and ``stack''
+\end{code}
+\pause
+\begin{code}
+first :: (a -> b) -> forall z. (a :* z -> b :* z)
 
 first f (a,z) = (f a, z)
 \end{code}
