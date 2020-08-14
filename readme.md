@@ -7,7 +7,7 @@ Talk for [Haskell Love 2020](https://haskell.love/).
 Links:
 
 *   [Slides (PDF)](http://conal.net/talks/compiling-gracefully.pdf)
-*   Video will be available.
+*   [Video](https://www.youtube.com/watch?v=wvQbpS6wBa0)
 *   Incomplete draft paper: [*Calculating compilers categorically*](http://conal.net/papers/calculating-compilers-categorically/).
 
 **Abstract**:
