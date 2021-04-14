@@ -575,7 +575,7 @@ instance Category StackProg where
   id = SP Nil
   SP g . SP f = SP (f ++* g)
 
-instance MonoidalPCat StackFun where
+instance MonoidalPCat StackProg where
   first (SP ops) = SP (Push :< ops ++* Pop :< Nil)
   second g = swapP . first g . swapP
   f *** g = first f . second g
